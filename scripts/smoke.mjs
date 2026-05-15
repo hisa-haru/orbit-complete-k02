@@ -10,6 +10,7 @@ const required = [
   "pages/api/debug.js",
   "pages/api/aftertone.js",
   "pages/api/session.js",
+  "pages/api/sessions.js",
   "lib/store.js",
   "lib/worldState.js",
   "lib/phenomenon.js",
@@ -43,6 +44,18 @@ const store = fs.existsSync(storePath) ? fs.readFileSync(storePath, "utf8") : ""
 if (!store.includes("REDIS_PREFIX")) failures.push("store: REDIS_PREFIX support missing");
 if (!store.includes("APP_ID")) failures.push("store: APP_ID fallback missing");
 if (!store.includes("UPSTASH_REDIS_REST_URL") || !store.includes("KV_REST_API_URL")) failures.push("store: Redis/KV env support missing");
+if (!store.includes("sessionIndex")) failures.push("store: session index support missing");
+if (!store.includes("upsertSessionIndex")) failures.push("store: session index upsert missing");
+
+const sessionsPath = path.join(root, "pages/api/sessions.js");
+const sessionsApi = fs.existsSync(sessionsPath) ? fs.readFileSync(sessionsPath, "utf8") : "";
+if (!sessionsApi.includes("listSessionIndex")) failures.push("sessions API: listSessionIndex integration missing");
+if (!sessionsApi.includes("upsertSessionIndex")) failures.push("sessions API: upsertSessionIndex integration missing");
+
+const indexPath = path.join(root, "pages/index.js");
+const index = fs.existsSync(indexPath) ? fs.readFileSync(indexPath, "utf8") : "";
+if (!index.includes("selectSession")) failures.push("UI: session selection missing");
+if (!index.includes("/api/sessions")) failures.push("UI: sessions API usage missing");
 
 const env = fs.readFileSync(path.join(root, ".env.example"), "utf8");
 for (const name of ["OPENAI_API_KEY", "OPENAI_MODEL", "DEBUG_PASSWORD", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN", "KV_REST_API_URL", "KV_REST_API_TOKEN", "APP_ID", "REDIS_PREFIX"]) {
@@ -61,4 +74,5 @@ console.log(`Checked ${required.length} required files.`);
 console.log("chat API: pages/api/chat.js");
 console.log("debug API: pages/api/debug.js");
 console.log("REDIS_PREFIX: supported");
+console.log("session list / past session restore: supported");
 console.log(".env.example: present and safe");

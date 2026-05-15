@@ -1,4 +1,4 @@
-# ORBIT complete rival
+# ORBIT complete k02 fixed
 
 Vercel に新規リポジトリとしてそのままデプロイできる Next.js 版 ORBIT 完成フォルダです。
 
@@ -280,3 +280,34 @@ npm run smoke
 - 秘密キーは含めていません
 - `NEXT_PUBLIC_` を秘密キーにつけないでください
 - OpenAI API key が未設定の場合、ローカル fallback 返答で動きます。本番で晴の生成を使うには `OPENAI_API_KEY` を入れて Redeploy してください
+
+
+## k02 修正版追加内容
+
+2日目の追加確認項目に対応しました。
+
+- 画面左に session 一覧を追加
+- 新規セッション開始時は会話欄が空になる
+- `/api/sessions` で session index を Redis / memory に保存
+- 過去 session を選ぶと、その session の messages / aftertone / sessionState を読み直す
+- debug snapshot 表示中に session を切り替えると、表示中の sessionId / messagesCount / aftertoneCount / sessionState も切り替わる
+- session index の Redis key にも REDIS_PREFIX が付く
+
+保存キー例：
+
+```txt
+${REDIS_PREFIX}:sessions:index:hisa
+${REDIS_PREFIX}:session:{sessionId}:messages
+${REDIS_PREFIX}:session:{sessionId}:meta
+${REDIS_PREFIX}:worldState:session:{sessionId}
+```
+
+### 2日目確認手順
+
+1. 何か送信する
+2. sessions 一覧に現在 session が出ることを確認
+3. 新規セッションを押す
+4. 会話欄が空になることを確認
+5. sessions 一覧から過去 session を選ぶ
+6. 選んだ session の会話が復元されることを確認
+7. debug を開いた状態で session を切り替え、sessionId が切り替わることを確認

@@ -1,4 +1,4 @@
-import { keys, getJSON, setJSON, pushJSON, storeInfo } from "../../lib/store";
+import { keys, getJSON, setJSON, pushJSON, storeInfo, upsertSessionIndex } from "../../lib/store";
 import { createDefaultGlobalState, createDefaultSessionState, updateSessionState } from "../../lib/worldState";
 import { buildPhenomenon } from "../../lib/phenomenon";
 import { generateHaruReply } from "../../lib/replyEngine";
@@ -63,7 +63,15 @@ export default async function handler(req, res) {
     await setJSON(keys.messages(sessionId), messages);
     await setJSON(keys.sessionState(sessionId), sessionState);
     await setJSON(keys.globalState(), { ...globalState, updatedAt: Date.now() });
-    await setJSON(keys.sessionMeta(sessionId), { sessionId, updatedAt: Date.now(), messagesCount: messages.length });
+    const firstUser = messages.find((m) => m.role === "user")?.content || text;
+    await upsertSessionIndex({
+      sessionId,
+      title: firstUser.slice(0, 28) || "新しいセッション",
+      createdAt: messages0[0]?.createdAt || userMsg.createdAt,
+      updatedAt: assistantMsg.createdAt,
+      messagesCount: messages.length,
+      lastPreview: assistantMsg.content.slice(0, 60)
+    });
 
     return res.status(200).json({
       sessionId,
